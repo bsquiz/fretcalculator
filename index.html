@@ -2,35 +2,156 @@
 	<head>
 		<title></title>
 <!-- production version, optimized for size and speed -->
+<!--
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+-->
+<script src="vue.js"></script>
 	</head>
 	
 	<body>
-		<div id="app">
-			{{message}}
+		<div id="app" class='app'>
+			<fret-form></fret-form>
+			<measurements></measurements>
+			<fretboard></fretboard>
 			<info-sidebar></info-sidebar>
-			<button-fun></button-fun>
 		</div>
+		
+		<style>
+			.app {
+				display: flex;
+			}
 
+			.fretboard, aside, .fret-form, .measurements {
+				flex: 1;
+			}	
+		</style>
+	
 		<script>
+			Vue.component('fretboard', {
+				methods: {
+					draw(numFrets = 0, scaleLength = 0) {
+						let yScale = 2;
+						let lastFretY = scaleLength; 
+						let fretY = lastFretY;
+						let fretScale = 1.059463; 
+ 
+						this.ctx.strokeRect(0, 0, this.WIDTH, this.HEIGHT);
+
+						for (let i=0; i<numFrets; i++) {
+							fretY = (lastFretY / fretScale) * yScale;
+							this.ctx.moveTo(0, fretY);
+							this.ctx.lineTo(this.fingerboardWidth, fretY);
+							console.log(fretY);
+							lastFretY = fretY;
+						}
+		
+						this.ctx.stroke();
+
+					}
+				},	
+				data() {
+					return {
+						$canvas: null,
+						ctx: null,
+						HEIGHT: 600,
+						WIDTH: 200,
+						fingerboardWidth: 200 
+					};
+				},
+				mounted() {
+					this.$canvas = document.getElementById("canvas");
+					this.ctx = this.$canvas.getContext('2d');
+				
+					this.$canvas.height = this.HEIGHT;
+					this.$canvas.width = this.WIDTH;
+	
+					this.draw(12, 13);
+				},
+				template: `<canvas class="fretboard" id="canvas"></canvas>`
+			});
+
+			Vue.component('measurements', {
+				data() {
+					return {
+						frets: [0, 1, 2, 3]
+					}
+				},
+				template: `<ol class="measurements">
+					<li v-for="fret in frets">{{fret}}</li>
+				</ol>`
+			});
+	
+			Vue.component('fret-form', {
+				data() {
+					return {
+						scaleLength: 0,
+						numberOfFrets: 0
+					}
+				},
+				template: `<form class="fret-form">
+					<div>
+						<label>scale length</label>
+						<input type="number" />
+					</div>
+					<div>
+						<label>number of frets</label>
+						<input type="number" />
+					</div>
+					<button>Calculate</button>
+				</form>`
+			});
+
 			Vue.component('info-sidebar', {
 				data() {
 					return {};
 				},
-				template: `<aside></aside>`
-			});
-			
-			Vue.component('button-fun', {
-				data() {
-					return {};
-				},
-				template: `<button>hi</button>`
+				template: `<aside>
+					<table>
+						<thead>
+							<tr>
+								<th>Ukulele</th>
+								<th>Scale Length</th>
+							</tr>
+						</thead>
+
+						<tbody>
+							<tr>
+								<td>Pocket</td>
+								<td>11"</td>
+							</tr>
+							<tr>
+								<td>Soprano</td>
+								<td>13"</td>
+							</tr>
+							<tr>
+								<td>Concert</td>
+								<td>15"</td>
+							</tr>
+							<tr>
+								<td>Tenor</td>
+								<td>17"</td>
+							</tr>
+							<tr>
+								<td>Baritonet</td>
+								<td>19"</td>
+							</tr>
+							<tr>
+								<td>Bass</td>
+								<td>20"</td>
+							</tr>
+							<tr>
+								<td>Contrabass</td>
+								<td>21"</td>
+							</tr>
+						</tbody>
+					</table>
+					<cite>https://en.wikipedia.org/wiki/Ukulele</cite>
+				</aside>`
 			});
 
 			const app = new Vue({
 				el: '#app',
 				data: {
-					message: `hello world`
 				}
 			});
 
