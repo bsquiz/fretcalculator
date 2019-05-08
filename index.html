@@ -12,7 +12,7 @@
 		<div id="app" class='app'>
 			<fret-form></fret-form>
 			<measurements></measurements>
-			<fretboard></fretboard>
+			<fretboard :frets="frets"></fretboard>
 			<info-sidebar></info-sidebar>
 		</div>
 		
@@ -29,26 +29,36 @@
 		<script>
 			Vue.component('fretboard', {
 				methods: {
-					draw(numFrets = 0, scaleLength = 0) {
+					draw() {
+						let scaleLength = 1;
 						let yScale = 2;
 						let lastFretY = scaleLength; 
 						let fretY = lastFretY;
 						let fretScale = 1.059463; 
- 
+console.log('draw'); 
 						this.ctx.strokeRect(0, 0, this.WIDTH, this.HEIGHT);
 
-						for (let i=0; i<numFrets; i++) {
+						for (let i=0; i<this.frets.length; i++) {
 							fretY = (lastFretY / fretScale) * yScale;
 							this.ctx.moveTo(0, fretY);
 							this.ctx.lineTo(this.fingerboardWidth, fretY);
-							console.log(fretY);
 							lastFretY = fretY;
 						}
 		
 						this.ctx.stroke();
-
 					}
 				},	
+				props: {
+					frets: {
+						type: Array,
+						required: true
+					}
+				},
+				watch: {
+					frets() {
+						this.draw();
+					}
+				},
 				data() {
 					return {
 						$canvas: null,
@@ -71,9 +81,15 @@
 			});
 
 			Vue.component('measurements', {
+				methods: {
+				},
+				props: {
+					frets: {
+						required: true
+					}
+				},
 				data() {
 					return {
-						frets: [0, 1, 2, 3]
 					}
 				},
 				template: `<ol class="measurements">
@@ -82,28 +98,58 @@
 			});
 	
 			Vue.component('fret-form', {
+				methods: {
+					onCalculateClick() {
+						bus.$emit('calculate-frets', this.scaleLength, this.numberOfFrets);
+					}
+				},
 				data() {
 					return {
 						scaleLength: 0,
 						numberOfFrets: 0
 					}
 				},
-				template: `<form class="fret-form">
+				template: `<div>
+					<form v-on:submit.prevent class="fret-form">
 					<div>
 						<label>scale length</label>
-						<input type="number" />
+						<input v-model="scaleLength" type="number" />
 					</div>
 					<div>
 						<label>number of frets</label>
-						<input type="number" />
+						<input v-model="numberOfFrets" type="number" />
 					</div>
-					<button>Calculate</button>
-				</form>`
+					</form>
+				<button @click="onCalculateClick">Calculate</button>
+				</div>`
 			});
 
 			Vue.component('info-sidebar', {
 				data() {
-					return {};
+					return {
+						ukuleleScales: [{
+							name: 'Pocket',
+							scale: 11
+						},{
+							name: 'Soprano',
+							scale: 13
+						},{
+							name: 'Concert',
+							scale: 15
+						},{
+							name: 'Tenor',
+							scale: 17
+						},{
+							name: 'Baritone',
+							scale: 19
+						},{
+							name: 'Bass',
+							scale: 20
+						},{
+							name: 'Contrabass',
+							scale: 21
+						}]
+					}
 				},
 				template: `<aside>
 					<table>
@@ -115,33 +161,9 @@
 						</thead>
 
 						<tbody>
-							<tr>
-								<td>Pocket</td>
-								<td>11"</td>
-							</tr>
-							<tr>
-								<td>Soprano</td>
-								<td>13"</td>
-							</tr>
-							<tr>
-								<td>Concert</td>
-								<td>15"</td>
-							</tr>
-							<tr>
-								<td>Tenor</td>
-								<td>17"</td>
-							</tr>
-							<tr>
-								<td>Baritonet</td>
-								<td>19"</td>
-							</tr>
-							<tr>
-								<td>Bass</td>
-								<td>20"</td>
-							</tr>
-							<tr>
-								<td>Contrabass</td>
-								<td>21"</td>
+							<tr v-for="ukulele in ukuleleScales">
+								<td>{{ukulele.name}}</td>
+								<td>{{ukulele.scale}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -149,9 +171,29 @@
 				</aside>`
 			});
 
+			const bus = new Vue();
 			const app = new Vue({
 				el: '#app',
+				methods: {
+					calculateFrets(scaleLength, numberOfFrets) {
+						scaleLength = parseInt(scaleLength, 10);
+						numberOfFrets = parseInt(numberOfFrets, 10);
+
+						console.log(scaleLength + ' ' + numberOfFrets);
+						let scale = 1.059463; 
+						this.frets = [scaleLength];
+
+						for(let i=1; i<numberOfFrets; i++) {
+							this.frets.push(this.frets[i-1] * scale);	
+						}
+					}
+				},
 				data: {
+					frets: [],
+					
+				},
+				created() {
+					bus.$on('calculate-frets', this.calculateFrets);
 				}
 			});
 
