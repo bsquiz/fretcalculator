@@ -11,7 +11,7 @@
 	<body>
 		<div id="app" class='app'>
 			<fret-form></fret-form>
-			<measurements></measurements>
+			<measurements :frets="frets"></measurements>
 			<fretboard :frets="frets"></fretboard>
 			<info-sidebar></info-sidebar>
 		</div>
@@ -75,14 +75,15 @@ console.log('draw');
 					this.$canvas.height = this.HEIGHT;
 					this.$canvas.width = this.WIDTH;
 	
-					this.draw(12, 13);
+					this.draw();
 				},
-				template: `<canvas class="fretboard" id="canvas"></canvas>`
+				template: `<div>
+						<h2>Fretboard</h2>
+						<canvas class="fretboard" id="canvas"></canvas>
+					</div>`
 			});
 
 			Vue.component('measurements', {
-				methods: {
-				},
 				props: {
 					frets: {
 						required: true
@@ -92,9 +93,13 @@ console.log('draw');
 					return {
 					}
 				},
-				template: `<ol class="measurements">
-					<li v-for="fret in frets">{{fret}}</li>
-				</ol>`
+				template: `<div>
+					<h2>Measurements</h2>
+					<ol class="measurements">
+						<li v-for="fret in frets">
+							from nut: {{fret.fromNut}}</li>
+					</ol>
+				</div>`
 			});
 	
 			Vue.component('fret-form', {
@@ -105,11 +110,12 @@ console.log('draw');
 				},
 				data() {
 					return {
-						scaleLength: 0,
-						numberOfFrets: 0
+						scaleLength: 12,
+						numberOfFrets: 12 
 					}
 				},
 				template: `<div>
+						<h2>Frets and Scalelength</h2>
 					<form v-on:submit.prevent class="fret-form">
 					<div>
 						<label>scale length</label>
@@ -129,45 +135,61 @@ console.log('draw');
 					return {
 						ukuleleScales: [{
 							name: 'Pocket',
-							scale: 11
+							scale: 11,
+							frets: 10
 						},{
 							name: 'Soprano',
-							scale: 13
+							scale: 13,
+							frets: 12
 						},{
 							name: 'Concert',
-							scale: 15
+							scale: 15,
+							frets: 18
 						},{
 							name: 'Tenor',
-							scale: 17
+							scale: 17,
+							frets: 18
 						},{
 							name: 'Baritone',
-							scale: 19
+							scale: 19,
+							frets: 18
 						},{
 							name: 'Bass',
-							scale: 20
+							scale: 20,
+							frets: 24
 						},{
 							name: 'Contrabass',
-							scale: 21
+							scale: 21,
+							frets: 24
 						}]
 					}
 				},
 				template: `<aside>
+					<h2>Common Measurements</h2>
 					<table>
 						<thead>
 							<tr>
 								<th>Ukulele</th>
 								<th>Scale Length</th>
+								<th>Frets</th>
 							</tr>
 						</thead>
 
 						<tbody>
 							<tr v-for="ukulele in ukuleleScales">
-								<td>{{ukulele.name}}</td>
+								<td>
+									<a href="">
+										{{ukulele.name}}
+									</a>		
+								</td>
 								<td>{{ukulele.scale}}</td>
+								<td>{{ukulele.frets}}</td>
 							</tr>
 						</tbody>
 					</table>
 					<cite>https://en.wikipedia.org/wiki/Ukulele</cite>
+					<br />
+					<cite>https://kalabrand.com</cite>
 				</aside>`
 			});
 
@@ -179,12 +201,25 @@ console.log('draw');
 						scaleLength = parseInt(scaleLength, 10);
 						numberOfFrets = parseInt(numberOfFrets, 10);
 
-						console.log(scaleLength + ' ' + numberOfFrets);
-						let scale = 1.059463; 
-						this.frets = [scaleLength];
+						let lastPosition = 0;
+						let scale =  17.817; 
+						let fromPrev = 0;
+						this.frets = [];
+						
+						function fixNum(num) {
+							return parseFloat(num.toFixed(3));
+						}
 
-						for(let i=1; i<numberOfFrets; i++) {
-							this.frets.push(this.frets[i-1] * scale);	
+						for(let i=0; i<numberOfFrets + 1; i++) {
+							fromPrev = (scaleLength / scale);
+							if (i !== 0) {
+								this.frets.push({
+									fromPrevFret: fixNum(fromPrev),	
+									fromNut: fixNum(lastPosition)
+								});
+							}
+							lastPosition += fromPrev;
+							scaleLength -= fromPrev;
 						}
 					}
 				},
