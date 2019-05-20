@@ -6,43 +6,47 @@
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 -->
 <script src="vue.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans|Oswald" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="main.css"/> 
+
 	</head>
 	
 	<body>
 		<div id="app" class='app'>
-			<fret-form></fret-form>
+			<div class="fret-data">
+				<fret-form></fret-form>
+				<info-sidebar></info-sidebar>
+			</div>
 			<measurements :frets="frets"></measurements>
 			<fretboard :frets="frets"></fretboard>
-			<info-sidebar></info-sidebar>
 		</div>
-		
-		<style>
-			.app {
-				display: flex;
-			}
 
-			.fretboard, aside, .fret-form, .measurements {
-				flex: 1;
-			}	
-		</style>
-	
 		<script>
 			Vue.component('fretboard', {
 				methods: {
 					draw() {
-						let scaleLength = 1;
-						let yScale = 2;
-						let lastFretY = scaleLength; 
-						let fretY = lastFretY;
+						// test dimensions in inches
+						let width = 1.25;
+						let height = 9;
+						
+						let lastFretPosition = scaleLength; 
+						let fretPosition = lastFretPosition;
 						let fretScale = 1.059463; 
-console.log('draw'); 
+
+						this.WIDTH = width * this.monitor.widthScale;
+						this.HEIGHT = height * this.monitor.heightScale;
+						this.$canvas.width = this.WIDTH;
+						this.$canvas.height = this.HEIGHT;
+
+						this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 						this.ctx.strokeRect(0, 0, this.WIDTH, this.HEIGHT);
 
 						for (let i=0; i<this.frets.length; i++) {
-							fretY = (lastFretY / fretScale) * yScale;
-							this.ctx.moveTo(0, fretY);
-							this.ctx.lineTo(this.fingerboardWidth, fretY);
-							lastFretY = fretY;
+							fretPosition = (lastFretPosition / fretScale) * 
+								this.monitor.heightScale;
+							this.ctx.moveTo(0, fretPosition);
+							this.ctx.lineTo(this.WIDTH, fretPosition);
+							lastFretPosition = fretPosition;
 						}
 		
 						this.ctx.stroke();
@@ -63,9 +67,17 @@ console.log('draw');
 					return {
 						$canvas: null,
 						ctx: null,
-						HEIGHT: 600,
-						WIDTH: 200,
-						fingerboardWidth: 200 
+						HEIGHT: 0,
+						WIDTH: 0,
+						monitor: {
+							pixelWidth: window.screen.width,
+							pixelHeight: window.screen.height,
+							pixelDensity: 0,
+							inchesWidth: 0,
+							inchesHeight: 0,
+							widthScale: 0,
+							heightScale: 0
+						}
 					};
 				},
 				mounted() {
@@ -74,12 +86,22 @@ console.log('draw');
 				
 					this.$canvas.height = this.HEIGHT;
 					this.$canvas.width = this.WIDTH;
-	
+
+					// test
+					this.monitor.inchesWidth = 14.35;
+					this.monitor.inchesHeight = 9.82;
+					this.monitor.widthScale = 
+						this.monitor.pixelWidth /
+						this.monitor.inchesWidth;
+					this.monitor.heightScale =
+						this.monitor.pixelHeight /
+						this.monitor.inchesHeight;	
+
 					this.draw();
 				},
-				template: `<div>
+				template: `<div class="fretboard">
 						<h2>Fretboard</h2>
-						<canvas class="fretboard" id="canvas"></canvas>
+						<canvas id="canvas"></canvas>
 					</div>`
 			});
 
@@ -91,11 +113,20 @@ console.log('draw');
 				},
 				data() {
 					return {
+						listClass: ''
 					}
 				},
-				template: `<div>
+				watch: {
+					frets() {
+						this.listClass = 'measurements-list fade-refresh';
+						setTimeout(() => {
+							this.listClass = 'measurements-list';
+						}, 1000);
+					}
+				},
+				template: `<div class="measurements">
 					<h2>Measurements</h2>
-					<ol class="measurements">
+					<ol :class="listClass">
 						<li v-for="fret in frets">
 							from nut: {{fret.fromNut}}</li>
 					</ol>
@@ -114,9 +145,9 @@ console.log('draw');
 						numberOfFrets: 12 
 					}
 				},
-				template: `<div>
+				template: `<div class="fret-form">
 						<h2>Frets and Scalelength</h2>
-					<form v-on:submit.prevent class="fret-form">
+					<form v-on:submit.prevent>
 					<div>
 						<label>scale length</label>
 						<input v-model="scaleLength" type="number" />
@@ -131,7 +162,16 @@ console.log('draw');
 			});
 
 			Vue.component('info-sidebar', {
+				methods: {
+					onScaleClicked(e) {
+						const scale = e.currentTarget.getAttribute('data-scale');
+						const frets = e.currentTarget.getAttribute('data-frets');
+
+						bus.$emit('calculate-frets', scale, frets);
+					}
+				},
 				data() {
+					
 					return {
 						ukuleleScales: [{
 							name: 'Pocket',
@@ -178,7 +218,11 @@ console.log('draw');
 						<tbody>
 							<tr v-for="ukulele in ukuleleScales">
 								<td>
-									<a href="">
+									<a href="javascript:void(0)"
+									@click="onScaleClicked"
+									:data-scale="ukulele.scale"
+									:data-frets="ukulele.frets"
+									>
 										{{ukulele.name}}
 									</a>		
 								</td>

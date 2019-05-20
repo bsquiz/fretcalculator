@@ -1,0 +1,83 @@
+.app {
+	display: flex;
+	flex-wrap: wrap;
+	font-family: 'Open Sans', sans-serif;
+	padding: 15px;
+}
+body {
+}
+button {
+	background: slategray;
+	color: white;
+	border: none;
+	padding: 5px;
+}
+table {
+	border-collapse: collapse;
+}
+h2 {
+}
+th, td, li {
+	padding: 5px;
+}
+table thead {
+	background: slategray;
+	color: white;
+}
+tr:nth-of-type(even), li:nth-of-type(even) {
+	background: #cee9ff;
+}
+td a {
+	color: black;
+}
+h2 {
+	font-weight: normal;
+}
+th {
+	text-align: left;
+	min-width: 100px;
+}
+.fret-form {
+	max-width: 300px;
+}
+.measurements, .fretboard {
+	margin-left: 60px;
+}
+.measurements ol {
+	padding-left: 25px;
+	margin: unset;
+}
+.fret-form form {
+	display: flex;
+}
+.fret-form form div {
+	flex-basis: 50%;
+}
+.fade-refresh {
+	animation-name: fade-refresh;
+	animation-duration: 1s;
+}
+@media(max-width: 680px) {
+	.fret-data, .measurements, .fretboard {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.fret-form, .measurements {
+		flex-basis: 100%;
+	}
+	.fret-form form {
+		display: block;
+	}
+	.fret-form form input {
+		width: 100%;
+		margin-bottom: 10px;
+	}
+}
+@keyframes fade-refresh {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
