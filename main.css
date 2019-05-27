@@ -5,6 +5,7 @@
 	padding: 15px;
 }
 body {
+	background: #f3f3f3;
 }
 button {
 	background: slategray;
@@ -20,12 +21,9 @@ h2 {
 th, td, li {
 	padding: 5px;
 }
-table thead {
-	background: slategray;
-	color: white;
-}
+
 tr:nth-of-type(even), li:nth-of-type(even) {
-	background: #cee9ff;
+	background: #969696;
 }
 td a {
 	color: black;
