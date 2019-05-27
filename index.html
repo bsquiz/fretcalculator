@@ -28,10 +28,6 @@
 						// test dimensions in inches
 						let width = 1.25;
 						let height = 9;
-						
-						let lastFretPosition = scaleLength; 
-						let fretPosition = lastFretPosition;
-						let fretScale = 1.059463; 
 
 						this.WIDTH = width * this.monitor.widthScale;
 						this.HEIGHT = height * this.monitor.heightScale;
@@ -42,11 +38,10 @@
 						this.ctx.strokeRect(0, 0, this.WIDTH, this.HEIGHT);
 
 						for (let i=0; i<this.frets.length; i++) {
-							fretPosition = (lastFretPosition / fretScale) * 
+							let fretPosition = this.frets[i].fromNut * 
 								this.monitor.heightScale;
 							this.ctx.moveTo(0, fretPosition);
 							this.ctx.lineTo(this.WIDTH, fretPosition);
-							lastFretPosition = fretPosition;
 						}
 		
 						this.ctx.stroke();
